@@ -6,6 +6,8 @@ import { ShareButton } from '@/components/shared/share-button'
 import { CommentSection } from '@/components/shared/comment-section'
 import { getSocialData } from '@/lib/utils/social-data'
 
+export const runtime = 'edge'
+
 interface Props {
   params: Promise<{ slug: string }>
 }

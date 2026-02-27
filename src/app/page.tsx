@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { getContentStats } from '@/lib/utils/content-stats'
 
+export const runtime = 'edge'
+
 export default async function HomePage() {
   const supabase = await createClient()
 
