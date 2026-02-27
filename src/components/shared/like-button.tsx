@@ -10,39 +10,15 @@ import { toast } from 'sonner'
 interface LikeButtonProps {
   contentType: 'news' | 'story'
   contentId: string
+  initialCount?: number
+  initialLiked?: boolean
 }
 
-export function LikeButton({ contentType, contentId }: LikeButtonProps) {
-  const [liked, setLiked] = useState(false)
-  const [count, setCount] = useState(0)
+export function LikeButton({ contentType, contentId, initialCount = 0, initialLiked = false }: LikeButtonProps) {
+  const [liked, setLiked] = useState(initialLiked)
+  const [count, setCount] = useState(initialCount)
   const { user } = useUser()
   const supabase = createClient()
-
-  useEffect(() => {
-    const fetchLikes = async () => {
-      const { count } = await supabase
-        .from('likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('content_type', contentType)
-        .eq('content_id', contentId)
-
-      setCount(count || 0)
-
-      if (user) {
-        const { data } = await supabase
-          .from('likes')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('content_type', contentType)
-          .eq('content_id', contentId)
-          .single()
-
-        setLiked(!!data)
-      }
-    }
-
-    fetchLikes()
-  }, [user, contentType, contentId, supabase])
 
   const handleLike = async () => {
     if (!user) {

@@ -5,6 +5,7 @@ import { LikeButton } from '@/components/shared/like-button'
 import { BookmarkButton } from '@/components/shared/bookmark-button'
 import { ShareButton } from '@/components/shared/share-button'
 import { CommentSection } from '@/components/shared/comment-section'
+import { getSocialData } from '@/lib/utils/social-data'
 import Link from 'next/link'
 
 interface Props {
@@ -15,26 +16,33 @@ export default async function StoryDetailPage({ params }: Props) {
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: storyData } = await supabase
-    .from('stories')
-    .select('*')
-    .eq('id', id)
-    .eq('status', 'approved')
-    .single()
+  const [storyRes, userRes] = await Promise.all([
+    supabase
+      .from('stories')
+      .select('*')
+      .eq('id', id)
+      .eq('status', 'approved')
+      .single(),
+    supabase.auth.getUser(),
+  ])
 
+  const storyData = storyRes.data
   if (!storyData) {
     notFound()
   }
 
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('username')
-    .eq('id', storyData.user_id)
-    .single()
+  const [profileRes, social] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', storyData.user_id)
+      .single(),
+    getSocialData(supabase, 'story', storyData.id, userRes.data.user?.id),
+  ])
 
   const story = {
     ...storyData,
-    profiles: { username: profileData?.username || null }
+    profiles: { username: profileRes.data?.username || null }
   }
 
   return (
@@ -62,12 +70,25 @@ export default async function StoryDetailPage({ params }: Props) {
       </div>
 
       <div className="flex items-center gap-4 py-4 border-t border-b">
-        <LikeButton contentType="story" contentId={story.id} />
-        <BookmarkButton contentType="story" contentId={story.id} />
+        <LikeButton
+          contentType="story"
+          contentId={story.id}
+          initialCount={social.likesCount}
+          initialLiked={social.isLiked}
+        />
+        <BookmarkButton
+          contentType="story"
+          contentId={story.id}
+          initialBookmarked={social.isBookmarked}
+        />
         <ShareButton title={story.title} />
       </div>
 
-      <CommentSection contentType="story" contentId={story.id} />
+      <CommentSection
+        contentType="story"
+        contentId={story.id}
+        initialComments={social.comments}
+      />
     </article>
   )
 }

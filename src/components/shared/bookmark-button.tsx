@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Bookmark } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -10,30 +10,13 @@ import { toast } from 'sonner'
 interface BookmarkButtonProps {
   contentType: 'news' | 'story'
   contentId: string
+  initialBookmarked?: boolean
 }
 
-export function BookmarkButton({ contentType, contentId }: BookmarkButtonProps) {
-  const [bookmarked, setBookmarked] = useState(false)
+export function BookmarkButton({ contentType, contentId, initialBookmarked = false }: BookmarkButtonProps) {
+  const [bookmarked, setBookmarked] = useState(initialBookmarked)
   const { user } = useUser()
   const supabase = createClient()
-
-  useEffect(() => {
-    if (!user) return
-
-    const fetchBookmark = async () => {
-      const { data } = await supabase
-        .from('bookmarks')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('content_type', contentType)
-        .eq('content_id', contentId)
-        .single()
-
-      setBookmarked(!!data)
-    }
-
-    fetchBookmark()
-  }, [user, contentType, contentId, supabase])
 
   const handleBookmark = async () => {
     if (!user) {

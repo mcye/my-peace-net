@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -19,18 +19,15 @@ interface Comment {
 interface CommentSectionProps {
   contentType: 'news' | 'story'
   contentId: string
+  initialComments?: Comment[]
 }
 
-export function CommentSection({ contentType, contentId }: CommentSectionProps) {
-  const [comments, setComments] = useState<Comment[]>([])
+export function CommentSection({ contentType, contentId, initialComments = [] }: CommentSectionProps) {
+  const [comments, setComments] = useState<Comment[]>(initialComments)
   const [newComment, setNewComment] = useState('')
   const [loading, setLoading] = useState(false)
   const { user } = useUser()
   const supabase = createClient()
-
-  useEffect(() => {
-    fetchComments()
-  }, [contentType, contentId])
 
   const fetchComments = async () => {
     const { data: commentsData } = await supabase

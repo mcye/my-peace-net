@@ -4,6 +4,7 @@ import { LikeButton } from '@/components/shared/like-button'
 import { BookmarkButton } from '@/components/shared/bookmark-button'
 import { ShareButton } from '@/components/shared/share-button'
 import { CommentSection } from '@/components/shared/comment-section'
+import { getSocialData } from '@/lib/utils/social-data'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -13,16 +14,23 @@ export default async function NewsDetailPage({ params }: Props) {
   const { slug } = await params
   const supabase = await createClient()
 
-  const { data: news } = await supabase
-    .from('news')
-    .select('*')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .single()
+  const [newsRes, userRes] = await Promise.all([
+    supabase
+      .from('news')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .single(),
+    supabase.auth.getUser(),
+  ])
 
+  const news = newsRes.data
   if (!news) {
     notFound()
   }
+
+  const userId = userRes.data.user?.id
+  const social = await getSocialData(supabase, 'news', news.id, userId)
 
   return (
     <article className="container mx-auto px-4 py-8 max-w-3xl">
@@ -40,12 +48,25 @@ export default async function NewsDetailPage({ params }: Props) {
       </div>
 
       <div className="flex items-center gap-4 py-4 border-t border-b">
-        <LikeButton contentType="news" contentId={news.id} />
-        <BookmarkButton contentType="news" contentId={news.id} />
+        <LikeButton
+          contentType="news"
+          contentId={news.id}
+          initialCount={social.likesCount}
+          initialLiked={social.isLiked}
+        />
+        <BookmarkButton
+          contentType="news"
+          contentId={news.id}
+          initialBookmarked={social.isBookmarked}
+        />
         <ShareButton title={news.title} />
       </div>
 
-      <CommentSection contentType="news" contentId={news.id} />
+      <CommentSection
+        contentType="news"
+        contentId={news.id}
+        initialComments={social.comments}
+      />
     </article>
   )
 }
