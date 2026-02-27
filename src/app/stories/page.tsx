@@ -3,8 +3,6 @@ import { StoryCard } from '@/components/shared/story-card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
-export const runtime = 'edge'
-
 export default async function StoriesPage() {
   const supabase = await createClient()
 

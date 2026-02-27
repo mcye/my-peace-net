@@ -5,8 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { StoryCard } from '@/components/shared/story-card'
 import { FollowButton } from '@/components/shared/follow-button'
 
-export const runtime = 'edge'
-
 interface Props {
   params: Promise<{ id: string }>
 }

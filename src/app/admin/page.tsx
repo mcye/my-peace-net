@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export const runtime = 'edge'
-
 export default async function AdminPage() {
   const supabase = await createClient()
 

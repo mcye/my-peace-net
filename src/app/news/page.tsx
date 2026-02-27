@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NewsCard } from '@/components/shared/news-card'
 
-export const runtime = 'edge'
-
 export default async function NewsPage() {
   const supabase = await createClient()
 

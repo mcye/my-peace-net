@@ -8,8 +8,6 @@ import { CommentSection } from '@/components/shared/comment-section'
 import { getSocialData } from '@/lib/utils/social-data'
 import Link from 'next/link'
 
-export const runtime = 'edge'
-
 interface Props {
   params: Promise<{ id: string }>
 }
