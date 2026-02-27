@@ -35,7 +35,10 @@ export default async function NewsDetailPage({ params }: Props) {
         )}
       </header>
 
-      <div className="prose prose-neutral max-w-none mb-8">
+      <div className="prose prose-neutral max-w-none mb-8
+        prose-p:leading-relaxed prose-p:text-base prose-p:break-words
+        prose-headings:font-semibold prose-headings:tracking-tight
+        [&_p]:whitespace-pre-wrap [&_p]:break-words [&_p]:overflow-wrap-anywhere">
         {news.content}
       </div>
 

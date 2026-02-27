@@ -57,7 +57,10 @@ export default async function StoryDetailPage({ params }: Props) {
         </div>
       </header>
 
-      <div className="prose prose-neutral max-w-none mb-8 whitespace-pre-wrap">
+      <div className="prose prose-neutral max-w-none mb-8
+        prose-p:leading-relaxed prose-p:text-base prose-p:break-words
+        prose-headings:font-semibold prose-headings:tracking-tight
+        [&]:whitespace-pre-wrap [&]:break-words [&]:overflow-wrap-anywhere">
         {story.content}
       </div>
 

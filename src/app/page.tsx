@@ -3,16 +3,28 @@ import { NewsCard } from '@/components/shared/news-card'
 import { StoryCard } from '@/components/shared/story-card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { getContentStats } from '@/lib/utils/content-stats'
 
 export default async function HomePage() {
   const supabase = await createClient()
 
-  const { data: news } = await supabase
+  const { data: newsData } = await supabase
     .from('news')
     .select('*')
     .eq('status', 'published')
     .order('published_at', { ascending: false })
     .limit(3)
+
+  let news = newsData || []
+  if (news.length > 0) {
+    const newsStats = await getContentStats(supabase, 'news', news.map(n => n.id))
+    news = news.map(n => ({
+      ...n,
+      likes_count: newsStats.get(n.id)?.likes || 0,
+      comments_count: newsStats.get(n.id)?.comments || 0,
+      bookmarks_count: newsStats.get(n.id)?.bookmarks || 0,
+    }))
+  }
 
   const { data: storiesData } = await supabase
     .from('stories')
@@ -25,15 +37,17 @@ export default async function HomePage() {
 
   if (stories.length > 0) {
     const userIds = [...new Set(stories.map(s => s.user_id))]
-    const { data: profilesData } = await supabase
-      .from('profiles')
-      .select('id, username')
-      .in('id', userIds)
+    const [profilesRes, storyStats] = await Promise.all([
+      supabase.from('profiles').select('id, username').in('id', userIds),
+      getContentStats(supabase, 'story', stories.map(s => s.id)),
+    ])
 
-    const profileMap = new Map(profilesData?.map(p => [p.id, p.username]) || [])
+    const profileMap = new Map(profilesRes.data?.map(p => [p.id, p.username]) || [])
     stories = stories.map(s => ({
       ...s,
-      profiles: { username: profileMap.get(s.user_id) || null }
+      profiles: { username: profileMap.get(s.user_id) || null },
+      likes_count: storyStats.get(s.id)?.likes || 0,
+      comments_count: storyStats.get(s.id)?.comments || 0,
     }))
   }
 

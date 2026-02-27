@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { StoryCard } from '@/components/shared/story-card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { getContentStats } from '@/lib/utils/content-stats'
 
 export default async function StoriesPage() {
   const supabase = await createClient()
@@ -16,15 +17,17 @@ export default async function StoriesPage() {
 
   if (stories.length > 0) {
     const userIds = [...new Set(stories.map(s => s.user_id))]
-    const { data: profilesData } = await supabase
-      .from('profiles')
-      .select('id, username')
-      .in('id', userIds)
+    const [profilesRes, stats] = await Promise.all([
+      supabase.from('profiles').select('id, username').in('id', userIds),
+      getContentStats(supabase, 'story', stories.map(s => s.id)),
+    ])
 
-    const profileMap = new Map(profilesData?.map(p => [p.id, p.username]) || [])
+    const profileMap = new Map(profilesRes.data?.map(p => [p.id, p.username]) || [])
     stories = stories.map(s => ({
       ...s,
-      profiles: { username: profileMap.get(s.user_id) || null }
+      profiles: { username: profileMap.get(s.user_id) || null },
+      likes_count: stats.get(s.id)?.likes || 0,
+      comments_count: stats.get(s.id)?.comments || 0,
     }))
   }
 
