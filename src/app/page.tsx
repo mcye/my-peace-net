@@ -14,12 +14,28 @@ export default async function HomePage() {
     .order('published_at', { ascending: false })
     .limit(3)
 
-  const { data: stories } = await supabase
+  const { data: storiesData } = await supabase
     .from('stories')
-    .select('*, profiles(username)')
+    .select('*')
     .eq('status', 'approved')
     .order('created_at', { ascending: false })
     .limit(6)
+
+  let stories = storiesData || []
+
+  if (stories.length > 0) {
+    const userIds = [...new Set(stories.map(s => s.user_id))]
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .in('id', userIds)
+
+    const profileMap = new Map(profilesData?.map(p => [p.id, p.username]) || [])
+    stories = stories.map(s => ({
+      ...s,
+      profiles: { username: profileMap.get(s.user_id) || null }
+    }))
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

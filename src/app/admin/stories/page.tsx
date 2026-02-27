@@ -24,11 +24,29 @@ export default function AdminStoriesPage() {
   }, [])
 
   const fetchStories = async () => {
-    const { data } = await supabase
+    const { data: storiesData } = await supabase
       .from('stories')
-      .select('*, profiles(username)')
+      .select('*')
       .order('created_at', { ascending: false })
-    setStories(data || [])
+
+    if (!storiesData) {
+      setStories([])
+      return
+    }
+
+    // 获取用户名
+    const userIds = [...new Set(storiesData.map(s => s.user_id))]
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .in('id', userIds)
+
+    const profileMap = new Map(profilesData?.map(p => [p.id, p.username]) || [])
+
+    setStories(storiesData.map(s => ({
+      ...s,
+      profiles: { username: profileMap.get(s.user_id) || null }
+    })))
   }
 
   const updateStatus = async (id: string, status: string) => {

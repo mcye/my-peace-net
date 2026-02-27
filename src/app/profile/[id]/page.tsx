@@ -23,12 +23,17 @@ export default async function ProfilePage({ params }: Props) {
     notFound()
   }
 
-  const { data: stories } = await supabase
+  const { data: storiesData } = await supabase
     .from('stories')
-    .select('*, profiles(username)')
+    .select('*')
     .eq('user_id', id)
     .eq('status', 'approved')
     .order('created_at', { ascending: false })
+
+  const stories = (storiesData || []).map(s => ({
+    ...s,
+    profiles: { username: profile.username }
+  }))
 
   const { count: followersCount } = await supabase
     .from('follows')

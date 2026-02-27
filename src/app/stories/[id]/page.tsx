@@ -15,15 +15,26 @@ export default async function StoryDetailPage({ params }: Props) {
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: story } = await supabase
+  const { data: storyData } = await supabase
     .from('stories')
-    .select('*, profiles(username)')
+    .select('*')
     .eq('id', id)
     .eq('status', 'approved')
     .single()
 
-  if (!story) {
+  if (!storyData) {
     notFound()
+  }
+
+  const { data: profileData } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', storyData.user_id)
+    .single()
+
+  const story = {
+    ...storyData,
+    profiles: { username: profileData?.username || null }
   }
 
   return (

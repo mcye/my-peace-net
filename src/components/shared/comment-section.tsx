@@ -33,15 +33,31 @@ export function CommentSection({ contentType, contentId }: CommentSectionProps) 
   }, [contentType, contentId])
 
   const fetchComments = async () => {
-    const { data } = await supabase
+    const { data: commentsData } = await supabase
       .from('comments')
-      .select('*, profiles(username)')
+      .select('*')
       .eq('content_type', contentType)
       .eq('content_id', contentId)
       .eq('status', 'approved')
       .order('created_at', { ascending: false })
 
-    setComments(data || [])
+    if (!commentsData || commentsData.length === 0) {
+      setComments([])
+      return
+    }
+
+    const userIds = [...new Set(commentsData.map(c => c.user_id))]
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .in('id', userIds)
+
+    const profileMap = new Map(profilesData?.map(p => [p.id, p.username]) || [])
+
+    setComments(commentsData.map(c => ({
+      ...c,
+      profiles: { username: profileMap.get(c.user_id) || null }
+    })))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
