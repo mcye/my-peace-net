@@ -18,7 +18,7 @@ interface NewsCardProps {
 export function NewsCard({ news }: NewsCardProps) {
   return (
     <Link href={`/news/${news.slug}`}>
-      <Card className="h-full hover:shadow-md transition-all hover:border-primary/20 group">
+      <Card className="h-full bg-card/80 backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/30 group cursor-pointer">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg leading-snug line-clamp-2 group-hover:text-primary transition-colors">
             {news.title}
